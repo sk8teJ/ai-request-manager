@@ -1,0 +1,378 @@
+{
+  "name": "AI Request Manager",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9efd726d-5a08-492d-a608-fd90334e64c1",
+      "name": "Telegram Trigger",
+      "webhookId": "bb20058b-6db4-4ee0-a2bd-0a698ab64cde",
+      "credentials": {
+        "telegramApi": {
+          "id": "9JE41EpDm9eclfiA",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Проанализируй обращение пользователя в службу поддержки.\n\nТекст обращения:\n{{ $json.message.text }}\n\nОпредели следующие параметры:\n\n1. category — категория обращения. Выбери одно значение:\ntechnical_support, payment, account, delivery, other.\n\n2. priority — приоритет:\nlow, medium, high, critical.\n\n3. sentiment — эмоциональная окраска:\npositive, neutral, negative.\n\n4. summary — краткое описание проблемы на русском языке (1-2 предложения).\n\n5. department — отдел, которому нужно направить обращение:\ntechnical_support, finance, customer_support, logistics.\n\n6. requires_human — требуется ли участие сотрудника (true или false).\n\nВерни результат в формате JSON без Markdown и дополнительного текста. \n\nДополнительные правила классификации:\n\n- Если проблема связана со входом в личный кабинет, логином или паролем, используй category = account.\n- requires_human = true только если ситуация действительно требует вмешательства сотрудника: списание денег без оформления заказа, подозрение на мошенничество или утечку данных, критическая ошибка либо невозможность решить проблему автоматически.\n- Для обычных ошибок входа, вопросов и стандартных технических проблем устанавливай requires_human = false, если нет дополнительных признаков серьёзной проблемы.\n- Не устанавливай requires_human = true только из-за негативного настроения пользователя.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        192,
+        0
+      ],
+      "id": "aeb16c5d-ebd8-4237-a67a-6863cfe220a5",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        208
+      ],
+      "id": "405492e4-f99e-4574-a886-d898d4dbb968",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qToPOf9tmd1KbWyH",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"category\": \"technical_support\",\n  \"priority\": \"high\",\n  \"sentiment\": \"negative\",\n  \"summary\": \"Пользователь не может войти в личный кабинет из-за ошибки пароля.\",\n  \"department\": \"technical_support\",\n  \"requires_human\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        208
+      ],
+      "id": "098df61b-f25f-48e2-aa9b-b1c8958d55f5",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "89385268-a2a0-4ffe-9b0c-90973e5c0f98",
+              "leftValue": "={{ $json.requires_human }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        656,
+        0
+      ],
+      "id": "2824ea23-00b3-4318-895f-5acebec8cee7",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=🚨 НОВОЕ ОБРАЩЕНИЕ — ТРЕБУЕТСЯ СОТРУДНИК\n\nКатегория: {{ $json.category }}\nПриоритет: {{ $json.priority }}\nОтдел: {{ $json.department }}\nНастроение клиента: {{ $json.sentiment }}\n\nОписание:\n{{ $json.summary }}\n\nИсходное сообщение:\n{{ $json.message_text }}\n\nТребуется участие сотрудника: {{ $json.requires_human }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        -128
+      ],
+      "id": "9196a5b9-9c36-45a2-a0c4-a4a5d139bac7",
+      "name": "Send a text message",
+      "webhookId": "c66e6add-43dc-48ef-91e8-f3b411b4f3e9",
+      "credentials": {
+        "telegramApi": {
+          "id": "9JE41EpDm9eclfiA",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "oiQRYbqGb726DVSU",
+          "mode": "list",
+          "cachedResultName": "support_requests",
+          "cachedResultUrl": "/projects/HTzntBqYiPDpVHFu/datatables/oiQRYbqGb726DVSU"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "requires_human": "={{ $json.output.requires_human }}",
+            "message_text": "=\t{{ $('Telegram Trigger').item.json.message.text }}",
+            "category": "={{ $json.output.category }}",
+            "priority": "={{ $json.output.priority }}",
+            "sentiment": "={{ $json.output.sentiment }}",
+            "summary": "={{ $json.output.summary }}",
+            "department": "={{ $json.output.department }}",
+            "telegram_chat_id": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "message_text",
+              "displayName": "message_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "requires_human",
+              "displayName": "requires_human",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "telegram_chat_id",
+              "displayName": "telegram_chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        0
+      ],
+      "id": "0e2ed9c1-c93c-4809-995a-cea9e49aee5b",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Здравствуйте! Ваше обращение принято.  Мы определили, что вопрос не требует немедленного вмешательства специалиста. Если проблема не решится, напишите нам повторно — мы поможем.  Спасибо за обращение!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        208
+      ],
+      "id": "95f1da48-6754-4cf8-a859-7a48febb508c",
+      "name": "Send a text message1",
+      "webhookId": "8b1ec19e-ad05-402a-8ae2-90e437796152",
+      "credentials": {
+        "telegramApi": {
+          "id": "9JE41EpDm9eclfiA",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "VeRMsqkcyAPdZvh8",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "f08efe88-4bc5-42c7-8adf-ded0918bd3bf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1cb59abcf69d0ad4ac1234004647c6cdd7db429b90a4315155db577efd0a8c2d"
+  },
+  "nodeGroups": [],
+  "id": "IOWFgOVLV5fpzKIv",
+  "tags": []
+}

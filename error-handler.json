@@ -1,0 +1,65 @@
+{
+  "name": "AI Request Manager — Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "553f1a23-8237-4325-90b2-375ccbdd33c9",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=⚠️ ОШИБКА В AI REQUEST MANAGER  Workflow: {{ $json.workflow.name }}  Ошибка: {{ $json.execution.error.message }}  Последний выполненный узел: {{ $json.execution.lastNodeExecuted }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "716bf47a-7e74-4aea-bf15-84fe017030e2",
+      "name": "Send a text message",
+      "webhookId": "f8040c33-1529-468b-9bbd-a3d9de5d413b",
+      "credentials": {
+        "telegramApi": {
+          "id": "9JE41EpDm9eclfiA",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "0ba7afd8-8156-4580-8b1f-900f8249728f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1cb59abcf69d0ad4ac1234004647c6cdd7db429b90a4315155db577efd0a8c2d"
+  },
+  "nodeGroups": [],
+  "id": "VeRMsqkcyAPdZvh8",
+  "tags": []
+}

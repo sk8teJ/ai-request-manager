@@ -1,0 +1,157 @@
+{
+  "name": "AI Request Manager — Analytics.",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e85c3dbd-2f0a-41b4-94c8-56630d1e2f80",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "oiQRYbqGb726DVSU",
+          "mode": "list",
+          "cachedResultName": "support_requests",
+          "cachedResultUrl": "/projects/HTzntBqYiPDpVHFu/datatables/oiQRYbqGb726DVSU"
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        0
+      ],
+      "id": "d46852e5-a6c0-4a8d-999a-347aeb640614",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(item => item.json);\n\n// Получаем выбранный период из узла Edit Fields\nconst period = $('Edit Fields').first().json.period;\n\nlet filteredRows = rows;\n\nif (period !== 'all') {\n  const days = Number(period);\n  const now = Date.now();\n  const cutoff = now - days * 24 * 60 * 60 * 1000;\n\n  filteredRows = rows.filter(row => {\n    const date = new Date(row.created_at).getTime();\n    return !isNaN(date) && date >= cutoff && date <= now;\n  });\n}\n\nconst countBy = (field) => {\n  return filteredRows.reduce((result, row) => {\n    const value = row[field] || 'unknown';\n    result[value] = (result[value] || 0) + 1;\n    return result;\n  }, {});\n};\n\nconst humanRequired = filteredRows.filter(row =>\n  row.requires_human === true || row.requires_human === 'true'\n).length;\n\nreturn [{\n  json: {\n    period: period,\n    total_requests: filteredRows.length,\n    by_category: countBy('category'),\n    by_priority: countBy('priority'),\n    requires_human: humanRequired,\n    no_human_required: filteredRows.length - humanRequired\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        0
+      ],
+      "id": "df1d258d-612f-4b47-be49-18faefb20c5f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=<b>📊 СТАТИСТИКА AI REQUEST MANAGER</b>\n\n<b>Всего обращений:</b> {{ $json.total_requests }}\n<b>Период:</b> {{ $json.period === 'all' ? 'За всё время' : 'Последние ' + $json.period + ' дней' }}\n<b>ПО КАТЕГОРИЯМ:</b>\n{{ Object.entries($json.by_category).map(([key, value]) => key + ': ' + value).join('\\n') }}\n\n<b>ПО ПРИОРИТЕТАМ:</b>\n{{ Object.entries($json.by_priority).map(([key, value]) => key + ': ' + value).join('\\n') }}\n\n<b>ТРЕБУЮТ УЧАСТИЯ СОТРУДНИКА:</b> {{ $json.requires_human }}\n\n<b>ОБРАБОТАНЫ БЕЗ СОТРУДНИКА:</b> {{ $json.no_human_required }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "ded31438-03bb-4305-98e3-c464bb044cfc",
+      "name": "Send a text message",
+      "webhookId": "e8edbbc9-2f7f-4e81-8f0b-7201ffba6a05",
+      "credentials": {
+        "telegramApi": {
+          "id": "9JE41EpDm9eclfiA",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b7dfb352-7dc4-4b63-927e-7cc02228db40",
+              "name": "period",
+              "value": "all",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "cd3d6b19-e028-4cbd-98ae-2ca9251a9c6a",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6eddfb5f-1126-453f-979f-853f3a625507",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1cb59abcf69d0ad4ac1234004647c6cdd7db429b90a4315155db577efd0a8c2d"
+  },
+  "nodeGroups": [],
+  "id": "04Tqe5h0YdM61x0e",
+  "tags": []
+}

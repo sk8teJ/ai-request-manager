@@ -1,7 +1,7 @@
 # AI Request Manager
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/sk8teJ/ai-request-manager/design/visual-readme-refresh/assets/readme-banner.svg" alt="AI Request Manager banner" width="100%">
+  <img src="https://raw.githubusercontent.com/sk8teJ/ai-request-manager/main/assets/readme-banner.svg" alt="AI Request Manager banner" width="100%">
 </div>
 <p>
   <img alt="n8n" src="https://img.shields.io/badge/n8n-EA4B71?style=flat-square&logo=n8n&logoColor=white">

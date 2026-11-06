@@ -1,8 +1,28 @@
 # AI Request Manager
 
+<div align="center">
+  <img src="https://raw.githubusercontent.com/sk8teJ/ai-request-manager/design/visual-readme-refresh/assets/readme-banner.svg" alt="AI Request Manager banner" width="100%">
+</div>
+<p>
+  <img alt="n8n" src="https://img.shields.io/badge/n8n-EA4B71?style=flat-square&logo=n8n&logoColor=white">
+  <img alt="Google Gemini" src="https://img.shields.io/badge/Google%20Gemini-8E75B2?style=flat-square&logo=googlegemini&logoColor=white">
+  <img alt="Telegram" src="https://img.shields.io/badge/Telegram-26A5E4?style=flat-square&logo=telegram&logoColor=white">
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white">
+  <img alt="Educational project" src="https://img.shields.io/badge/Project-Educational-64748B?style=flat-square">
+</p>
+
 Учебный проект автоматизации обработки обращений с помощью **n8n, Google Gemini и Telegram**. Workflow принимает текстовые сообщения, классифицирует обращения, сохраняет результаты и направляет уведомления в зависимости от необходимости участия сотрудника.
 
 Проект показывает практическую работу с no-code/low-code автоматизацией, интеграцией внешнего API, структурированным ответом LLM, хранением данных и обработкой ошибок. Это портфолио-проект, а не готовая к промышленной эксплуатации служба поддержки.
+
+
+## Навигация
+
+- [Возможности](#возможности)
+- [Архитектура](#архитектура)
+- [Технологии](#технологии)
+- [Установка и запуск](#локальный-запуск)
+
 
 ## Демонстрация
 

@@ -143,7 +143,7 @@
           "mappingMode": "defineBelow",
           "value": {
             "requires_human": "={{ $json.output.requires_human }}",
-            "message_text": "=\t{{ $('Telegram Trigger').item.json.message.text }}",
+            "message_text": "={{ $('Telegram Trigger').item.json.message.text }}",
             "category": "={{ $json.output.category }}",
             "priority": "={{ $json.output.priority }}",
             "sentiment": "={{ $json.output.sentiment }}",
